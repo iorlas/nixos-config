@@ -24,7 +24,7 @@ open_iterm_session() {
 
 # If a session name was given, create/attach just that one
 if [ -n "$SESSION" ]; then
-  DIR="${DIR:-~/workspaces/$SESSION}"
+  DIR="${DIR:-~/Workspaces/$SESSION}"
   # Ensure directory exists on pix
   orb run -m "$HOST" mkdir -p "$DIR"
   echo "→ $SESSION ($DIR)"

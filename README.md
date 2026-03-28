@@ -23,6 +23,7 @@ orb run -m pix claude
 ```bash
 alias pix="orb run -m pix -s" && funcsave pix
 alias pix-connect="bash ~/nixos-config/scripts/pix-connect.sh" && funcsave pix-connect
+cp ~/nixos-config/scripts/pix-connect.fish ~/.config/fish/completions/
 ```
 
 ## Day-to-day usage
@@ -30,7 +31,7 @@ alias pix-connect="bash ~/nixos-config/scripts/pix-connect.sh" && funcsave pix-c
 ```bash
 # From macOS — iTerm2 windows with tmux -CC integration
 pix-connect                  # reconnect all project sessions
-pix-connect myproject        # create/attach a project session (~/workspaces/myproject)
+pix-connect myproject        # create/attach a project session (~/Workspaces/myproject)
 pix-connect myproject /path  # create in custom path
 
 # From inside pix (plain tmux, no iTerm integration)
