@@ -1,35 +1,35 @@
 #!/usr/bin/env bash
-# Bootstrap a fresh OrbStack NixOS VM from this repo.
+# One-time setup for pix (OrbStack NixOS VM). Idempotent — safe to re-run.
 #
-# From inside the VM:
-#   bash /mnt/mac/Users/iorlas/nixos-config/bootstrap.sh
-#
-# From macOS:
+# Usage:
 #   orb run -m pix bash /mnt/mac/Users/iorlas/nixos-config/bootstrap.sh
 
 set -euo pipefail
 
-REPO_MAC="/mnt/mac/Users/iorlas/nixos-config"
+REPO="/mnt/mac/Users/iorlas/nixos-config"
 
-echo "==> Step 1: nixos-rebuild switch"
-
-# Flakes need git; fresh NixOS doesn't have it
-if ! command -v git &> /dev/null; then
-  echo "    Installing git temporarily for flake evaluation..."
+echo "==> Git"
+if command -v git &> /dev/null; then
+  echo "  Already installed"
+else
+  echo "  Installing temporarily for flake evaluation..."
   export PATH="$(nix-build '<nixpkgs>' -A git --no-out-link)/bin:$PATH"
 fi
 
-# --impure needed because we import /etc/nixos/orbstack.nix (OrbStack-managed, not in repo)
-sudo env PATH="$PATH" nixos-rebuild switch --flake "$REPO_MAC#pix" --impure
+echo "==> NixOS rebuild"
+sudo env PATH="$PATH" nixos-rebuild switch --flake "$REPO#pix" --impure
 
-echo "==> Step 2: Install Claude Code"
-
+echo "==> Claude Code"
 mkdir -p "$HOME/.npm-global"
-npm config set prefix "$HOME/.npm-global"
+npm config set prefix "$HOME/.npm-global" 2>/dev/null
 export PATH="$HOME/.npm-global/bin:$PATH"
-npm install -g @anthropic-ai/claude-code
+if command -v claude &> /dev/null; then
+  echo "  Already installed ($(claude --version 2>&1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1))"
+else
+  echo "  Installing..."
+  npm install -g @anthropic-ai/claude-code
+fi
 
 echo ""
-echo "==> Done! Next steps:"
-echo "    sudo tailscale up --exit-node=<vps-tailscale-ip> --accept-routes"
-echo "    claude"
+echo "==> Running doctor..."
+bash "$REPO/doctor.sh"

@@ -33,7 +33,9 @@
 
     shellAliases = {
       c = "claude";
-      nrs = "sudo nixos-rebuild switch --flake /mnt/mac/Users/iorlas/nixos-config#pix";
+      nrs = "sudo nixos-rebuild switch --flake /mnt/mac/Users/iorlas/nixos-config#pix --impure";
+      bootstrap = "bash /mnt/mac/Users/iorlas/nixos-config/bootstrap.sh";
+      doctor = "bash /mnt/mac/Users/iorlas/nixos-config/doctor.sh";
     };
 
     functions = {
