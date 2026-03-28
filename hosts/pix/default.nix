@@ -43,7 +43,7 @@
     dhcpcd.enable = false;
     useDHCP = false;
     useHostResolvConf = false;
-    nameservers = [ "1.1.1.1" "1.0.0.1" ];
+    nameservers = [ "9.9.9.9" "149.112.112.112" ];
   };
 
   # DNS-over-TLS via systemd-resolved
@@ -51,9 +51,9 @@
   services.resolved = {
     enable = lib.mkForce true;
     dnsovertls = "true";
-    fallbackDns = [ "1.1.1.1" "1.0.0.1" ];
+    fallbackDns = [ "1.1.1.1" "1.0.0.1" ];  # Cloudflare as fallback
     settings.Resolve = {
-      DNS = [ "1.1.1.1#cloudflare-dns.com" "1.0.0.1#cloudflare-dns.com" ];
+      DNS = [ "9.9.9.9#dns.quad9.net" "149.112.112.112#dns.quad9.net" ];
     };
   };
   environment.etc."resolv.conf".source = lib.mkForce "/run/systemd/resolve/stub-resolv.conf";
