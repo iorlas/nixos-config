@@ -6,7 +6,7 @@
 #   doctor        # check only
 #   doctor --fix  # check + fix
 
-set -euo pipefail
+set -uo pipefail
 
 FIX=false
 [[ "${1:-}" == "--fix" ]] && FIX=true
@@ -29,7 +29,6 @@ fix_or_hint() {
       ok "Fixed"
     else
       fail "Fix failed"
-      ISSUES=$((ISSUES + 1))
     fi
   else
     warn "$1"
@@ -41,7 +40,6 @@ fix_or_hint() {
         ok "Fixed"
       else
         fail "Fix failed"
-        ISSUES=$((ISSUES + 1))
       fi
     else
       echo -e "     Skipped. Manual: $2"

@@ -1,7 +1,7 @@
 # Host config for pix (OrbStack NixOS VM)
 #
 # OrbStack manages orbstack.nix and incus.nix on disk at /etc/nixos/.
-# The bootstrap script extracts certificates into /etc/nixos/certs.nix.
+# No corporate certs imported — clean certificate store for privacy.
 
 { config, pkgs, modulesPath, ... }:
 

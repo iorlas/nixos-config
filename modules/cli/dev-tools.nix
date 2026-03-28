@@ -20,7 +20,6 @@
     jq
     yq
     htop
-    tmux
     nano
     unzip
     tree

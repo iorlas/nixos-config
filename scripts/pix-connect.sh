@@ -28,7 +28,7 @@ if [ -n "$SESSION" ]; then
   # Ensure directory exists on pix
   orb run -m "$HOST" mkdir -p "$DIR"
   echo "→ $SESSION ($DIR)"
-  open_iterm_session "orb run -m $HOST -s -u iorlas tmux -CC new-session -A -s $SESSION -c $DIR"
+  open_iterm_session "orb run -m $HOST -s -u iorlas tmux -CC new-session -A -s '$SESSION' -c '$DIR'"
   exit 0
 fi
 
@@ -44,7 +44,7 @@ fi
 echo "Reconnecting sessions on $HOST:"
 for SESSION in $SESSIONS; do
   echo "  → $SESSION"
-  open_iterm_session "orb run -m $HOST -s -u iorlas tmux -CC attach -t $SESSION"
+  open_iterm_session "orb run -m $HOST -s -u iorlas tmux -CC attach -t '$SESSION'"
   sleep 0.5
 done
 
