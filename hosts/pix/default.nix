@@ -70,6 +70,17 @@
     };
   };
 
+  # Locale
+  i18n.defaultLocale = "en_US.UTF-8";
+
+  # inotify limits — Node.js file watchers need higher limits
+  boot.kernel.sysctl."fs.inotify.max_user_watches" = 524288;
+  boot.kernel.sysctl."fs.inotify.max_user_instances" = 256;
+
+  # SSH agent forwarding — use Mac's SSH keys from inside pix
+  programs.ssh.startAgent = false;  # don't start a local agent
+  # The Mac's agent is forwarded via OrbStack's SSH
+
   nixpkgs.config.allowUnfree = true;
 
   system.stateVersion = "25.11";

@@ -81,6 +81,30 @@ else
   warn "Not authenticated. Run interactively: claude"
 fi
 
+# ─── GitHub CLI ───────────────────────────────────────────────────────────────
+
+echo "==> GitHub CLI"
+if command -v gh &> /dev/null; then
+  if gh auth status &>/dev/null; then
+    GH_USER=$(gh api user -q .login 2>/dev/null || echo "unknown")
+    ok "Authenticated as $GH_USER"
+  else
+    warn "Not authenticated. Run interactively: gh auth login"
+  fi
+else
+  fail "gh not installed"
+fi
+
+# ─── SSH Agent ────────────────────────────────────────────────────────────────
+
+echo "==> SSH Agent"
+if ssh-add -l &>/dev/null; then
+  KEY_COUNT=$(ssh-add -l 2>/dev/null | wc -l | tr -d ' ')
+  ok "$KEY_COUNT key(s) available"
+else
+  warn "No SSH keys available. Check SSH agent forwarding from Mac"
+fi
+
 # ─── Tailscale ─────────────────────────────────────────────────────────────────
 
 echo "==> Tailscale"
