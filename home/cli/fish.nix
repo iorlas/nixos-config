@@ -32,11 +32,37 @@
     };
 
     shellAliases = {
-      c = "claude";
       nrs = "sudo nixos-rebuild switch --flake /mnt/mac/Users/iorlas/nixos-config#pix --impure";
     };
 
     functions = {
+      _check_exit_node = {
+        description = "Block if traffic is not routed through shen";
+        body = ''
+          set -l exit_id (tailscale status -json 2>/dev/null | jq -r '.ExitNodeStatus.ID // empty' 2>/dev/null)
+          if test -z "$exit_id"
+            set_color red --bold
+            echo "BLOCKED: traffic is not routed through shen."
+            set_color normal
+            echo "Run: doctor --fix"
+            return 1
+          end
+        '';
+      };
+      claude = {
+        description = "Claude Code with exit node guard";
+        body = ''
+          _check_exit_node; or return 1
+          command claude $argv
+        '';
+      };
+      c = {
+        description = "Claude Code shortcut with exit node guard";
+        body = ''
+          _check_exit_node; or return 1
+          command claude $argv
+        '';
+      };
       fish_greeting = {
         description = "Check tailscale exit node on shell start";
         body = ''
