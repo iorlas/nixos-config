@@ -146,6 +146,20 @@ else
   fi
 fi
 
+# ─── DNS ──────────────────────────────────────────────────────────────────────
+
+echo "==> DNS"
+if systemctl is-active --quiet systemd-resolved; then
+  DNS_SERVERS=$(resolvectl status 2>/dev/null | grep "DNS Servers" | head -1 || echo "")
+  if echo "$DNS_SERVERS" | grep -q "9.9.9.9"; then
+    ok "DNS-over-TLS via Quad9"
+  else
+    warn "DNS not using Quad9: $DNS_SERVERS"
+  fi
+else
+  warn "systemd-resolved not running — DNS may leak"
+fi
+
 # ─── Summary ───────────────────────────────────────────────────────────────────
 
 echo ""
@@ -157,3 +171,7 @@ else
     echo -e "Run ${YELLOW}doctor --fix${NC} to auto-fix."
   fi
 fi
+
+echo ""
+echo -e "Host-side: iTerm2 > Settings > General > tmux >"
+echo -e "  ${YELLOW}\"Automatically bury the tmux client session\"${NC} must be ON"

@@ -54,6 +54,11 @@
       set -g set-titles-string "#S @ pix"
       set -g automatic-rename on
 
+      # Don't kill sessions — detach instead of exit on window close
+      set -g detach-on-destroy on
+      set -g destroy-unattached off
+      set -g exit-unattached off
+
       # Splits/windows inherit current directory
       bind | split-window -h -c "#{pane_current_path}"
       bind - split-window -v -c "#{pane_current_path}"

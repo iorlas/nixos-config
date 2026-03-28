@@ -20,6 +20,11 @@ orb run -m pix claude
 
 ## Host machine setup (macOS, one-time)
 
+**iTerm2 settings** (required for tmux -CC):
+- Settings → General → tmux → **"Automatically bury the tmux client session after connecting"** ✓
+- Settings → General → tmux → "When attaching, restore windows as" → your preference (tabs or windows)
+
+**Fish aliases:**
 ```bash
 alias pix="orb run -m pix -s" && funcsave pix
 alias pix-connect="bash ~/nixos-config/scripts/pix-connect.sh" && funcsave pix-connect
