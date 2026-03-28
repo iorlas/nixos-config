@@ -2,9 +2,10 @@
 
 {
   environment.systemPackages = with pkgs; [
-    # Node.js (runtime for Claude Code) + version manager
+    # Node.js (runtime for Claude Code) + version manager + package manager
     nodejs_22
     fnm
+    pnpm
 
     # Python
     uv
