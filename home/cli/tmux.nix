@@ -48,7 +48,11 @@
 
       # Window behavior
       set -g renumber-windows on
-      set-option -g allow-rename off
+
+      # Window/terminal title — shows "session-name @ pix"
+      set -g set-titles on
+      set -g set-titles-string "#S @ pix"
+      set -g automatic-rename on
 
       # Splits/windows inherit current directory
       bind | split-window -h -c "#{pane_current_path}"
