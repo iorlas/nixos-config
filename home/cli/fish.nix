@@ -13,14 +13,29 @@
     '';
 
     interactiveShellInit = ''
+      # Colors
       set -g fish_color_autosuggestion brblack
       set -g fish_color_command green
       set -g fish_color_error red
       set -g fish_color_param blue
 
-      # Auto-attach tmux on interactive login
-      # Skip if already in tmux or if connected via tmux -CC (iTerm integration)
-      if status is-interactive; and not set -q TMUX; and not set -q TMUX_PANE
+      # Tide prompt config (from tide configure)
+      set -U tide_left_prompt_items pwd git newline character
+      set -U tide_right_prompt_items status cmd_duration context jobs direnv node nix_shell time
+      set -U tide_prompt_transient_enabled true
+      set -U tide_prompt_add_newline_before false
+      set -U tide_left_prompt_frame_enabled false
+      set -U tide_right_prompt_frame_enabled false
+      set -U tide_character_icon \u276f
+      set -U tide_git_color_branch 5FD700
+      set -U tide_git_color_dirty D7AF00
+      set -U tide_git_color_untracked 00AFFF
+      set -U tide_git_color_staged D7AF00
+      set -U tide_pwd_color_anchors 00AFFF
+      set -U tide_pwd_color_dirs 0087AF
+
+      # Auto-attach tmux on interactive login (plain shell only)
+      if status is-interactive; and not set -q TMUX
         exec tmux new-session -A -s main
       end
     '';
