@@ -25,6 +25,8 @@ open_iterm_session() {
 # If a session name was given, create/attach just that one
 if [ -n "$SESSION" ]; then
   DIR="${DIR:-~/workspaces/$SESSION}"
+  # Ensure directory exists on pix
+  orb run -m "$HOST" mkdir -p "$DIR"
   echo "→ $SESSION ($DIR)"
   open_iterm_session "orb run -m $HOST -s -u iorlas tmux -CC new-session -A -s $SESSION -c $DIR"
   exit 0
