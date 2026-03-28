@@ -5,8 +5,8 @@
     enable = true;
 
     shellInit = ''
-      # Claude Code (npm global)
-      set -gx PATH $HOME/.npm-global/bin $PATH
+      # Local scripts (bootstrap, doctor) + Claude Code (npm global)
+      set -gx PATH $HOME/.local/bin $HOME/.npm-global/bin $PATH
 
       # fnm (Node version manager)
       fnm env --use-on-cd --shell fish | source
@@ -34,8 +34,6 @@
     shellAliases = {
       c = "claude";
       nrs = "sudo nixos-rebuild switch --flake /mnt/mac/Users/iorlas/nixos-config#pix --impure";
-      bootstrap = "bash /mnt/mac/Users/iorlas/nixos-config/bootstrap.sh";
-      doctor = "bash /mnt/mac/Users/iorlas/nixos-config/doctor.sh";
     };
 
     functions = {

@@ -58,11 +58,15 @@ else
       TS_IP=$(tailscale ip -4 2>/dev/null || echo "no IP")
       ok "Connected ($TS_IP)"
 
+      # Check exit node — should be shen (100.65.108.29)
+      EXPECTED_EXIT="shen"
+      EXPECTED_EXIT_IP="100.65.108.29"
       TS_EXIT=$(tailscale status -json 2>/dev/null | jq -r '.ExitNodeStatus.ID // empty' 2>/dev/null)
       if [ -n "$TS_EXIT" ]; then
-        ok "Exit node active"
+        TS_EXIT_NAME=$(tailscale status 2>/dev/null | grep -E "exit node" | awk '{print $2}' || echo "unknown")
+        ok "Exit node active ($TS_EXIT_NAME)"
       else
-        warn "No exit node. Run: sudo tailscale up --exit-node=<vps-ip> --accept-routes"
+        warn "No exit node. Run: sudo tailscale up --exit-node=$EXPECTED_EXIT_IP --accept-routes"
       fi
       ;;
     NeedsLogin)
@@ -93,13 +97,13 @@ TS_EXIT=$(tailscale status -json 2>/dev/null | jq -r '.ExitNodeStatus.ID // empt
 if [ -n "$TS_EXIT" ]; then
   PUBLIC_IP=$(curl -s --max-time 5 ifconfig.me 2>/dev/null || echo "timeout")
   if [ "$PUBLIC_IP" != "timeout" ]; then
-    ok "Public IP: $PUBLIC_IP (via exit node)"
+    ok "Public IP: $PUBLIC_IP (via shen exit node)"
   else
     fail "Cannot reach internet through exit node"
   fi
 else
   if curl -s --max-time 5 ifconfig.me &>/dev/null; then
-    ok "Internet reachable (direct, no exit node)"
+    warn "Internet reachable but traffic is NOT routed through shen"
   else
     fail "No internet connectivity"
   fi
