@@ -18,24 +18,30 @@ orb run -m pix doctor --fix
 orb run -m pix claude
 ```
 
-## Host machine setup
+## Host machine setup (macOS, one-time)
 
 ```bash
-# Add pix alias to fish on macOS (one-time)
 alias pix="orb run -m pix -s" && funcsave pix
+alias pix-connect="bash ~/nixos-config/scripts/pix-connect.sh" && funcsave pix-connect
 ```
 
 ## Day-to-day usage
 
 ```bash
-pix                  # enter the VM (from macOS)
+# From macOS — iTerm2 windows with tmux -CC integration
+pix-connect                  # reconnect all project sessions
+pix-connect myproject        # create/attach a project session (~/workspaces/myproject)
+pix-connect myproject /path  # create in custom path
 
-doctor               # check health, prompt to fix issues
-doctor --fix         # auto-fix everything without prompts
-bootstrap            # rebuild system + check health
-nrs                  # quick nixos-rebuild switch
+# From inside pix (plain tmux, no iTerm integration)
+pix                          # enter VM shell (auto-attaches tmux)
 
-c                    # claude code
+# Inside the VM
+doctor                       # check health, prompt to fix issues
+doctor --fix                 # auto-fix everything without prompts
+bootstrap                    # rebuild system + check health
+nrs                          # quick nixos-rebuild switch
+c                            # claude code
 ```
 
 ## Structure
