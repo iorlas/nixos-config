@@ -11,8 +11,8 @@ orb create nixos:25.11 pix
 # Bootstrap (one-time setup)
 orb run -m pix bash /mnt/mac/Users/iorlas/nixos-config/bootstrap.sh
 
-# Connect Tailscale
-orb run -m pix sudo tailscale up --exit-node=<vps-tailscale-ip> --accept-routes
+# Fix everything (tailscale, etc.)
+orb run -m pix doctor --fix
 
 # Authenticate Claude
 orb run -m pix claude
@@ -21,9 +21,10 @@ orb run -m pix claude
 ## Day-to-day usage
 
 ```bash
-orb shell pix        # enter the VM
+orb -m pix           # enter the VM
 
-doctor               # check health of everything
+doctor               # check health, prompt to fix issues
+doctor --fix         # auto-fix everything without prompts
 bootstrap            # rebuild system + check health
 nrs                  # quick nixos-rebuild switch
 
