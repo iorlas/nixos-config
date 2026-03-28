@@ -18,10 +18,17 @@ orb run -m pix doctor --fix
 orb run -m pix claude
 ```
 
+## Host machine setup
+
+```bash
+# Add pix alias to fish on macOS (one-time)
+alias pix="orb run -m pix -s" && funcsave pix
+```
+
 ## Day-to-day usage
 
 ```bash
-orb -m pix           # enter the VM
+pix                  # enter the VM (from macOS)
 
 doctor               # check health, prompt to fix issues
 doctor --fix         # auto-fix everything without prompts
