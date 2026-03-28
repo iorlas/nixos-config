@@ -3,7 +3,7 @@
 # OrbStack manages orbstack.nix and incus.nix on disk at /etc/nixos/.
 # No corporate certs imported — clean certificate store for privacy.
 
-{ config, pkgs, modulesPath, ... }:
+{ config, lib, pkgs, modulesPath, ... }:
 
 {
   imports = [
@@ -43,7 +43,20 @@
     dhcpcd.enable = false;
     useDHCP = false;
     useHostResolvConf = false;
+    nameservers = [ "1.1.1.1" "1.0.0.1" ];
   };
+
+  # DNS-over-TLS via systemd-resolved
+  # mkForce overrides OrbStack's `resolved.enable = false` and resolv.conf
+  services.resolved = {
+    enable = lib.mkForce true;
+    dnsovertls = "true";
+    fallbackDns = [ "1.1.1.1" "1.0.0.1" ];
+    settings.Resolve = {
+      DNS = [ "1.1.1.1#cloudflare-dns.com" "1.0.0.1#cloudflare-dns.com" ];
+    };
+  };
+  environment.etc."resolv.conf".source = lib.mkForce "/run/systemd/resolve/stub-resolv.conf";
 
   systemd.network = {
     enable = true;
