@@ -38,8 +38,23 @@
 
     functions = {
       fish_greeting = {
-        description = "Disable greeting";
-        body = "";
+        description = "Check tailscale exit node on shell start";
+        body = ''
+          if command -q tailscale
+            set -l exit_id (tailscale status -json 2>/dev/null | jq -r '.ExitNodeStatus.ID // empty' 2>/dev/null)
+            if test -z "$exit_id"
+              set_color -b red white --bold
+              echo ""
+              echo "  !! TRAFFIC IS NOT ROUTED THROUGH SHEN !!  "
+              echo ""
+              set_color normal
+              set_color yellow
+              echo "  run: doctor --fix"
+              echo ""
+              set_color normal
+            end
+          end
+        '';
       };
     };
 

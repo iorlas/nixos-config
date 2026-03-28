@@ -17,6 +17,7 @@
     ../../modules/nix/nix-ld.nix
     ../../modules/services/docker.nix
     ../../modules/services/tailscale.nix
+    ../../modules/services/tailscale-guard.nix
     ../../modules/shell/fish.nix
     ../../modules/cli/dev-tools.nix
   ];
