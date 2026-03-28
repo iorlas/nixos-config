@@ -3,12 +3,17 @@
 {
   environment.systemPackages = with pkgs; [
     # Node.js (runtime for Claude Code) + version manager + package manager
-    nodejs_22
+    nodejs_24
     fnm
     pnpm
 
     # Python
     uv
+    python313
+    pipx
+
+    # JavaScript runtimes
+    deno
 
     # Build tools
     gnumake
@@ -16,16 +21,22 @@
 
     # Core CLI
     git
+    gh
     curl
     wget
     jq
     yq
-    htop
+    btop
     nano
     unzip
     tree
     lazygit
     neovim
+
+    # Linting / security
+    gitleaks
+    hadolint
+    yamllint
   ];
 
   # VS Code Remote SSH works automatically via nix-ld (see modules/nix/nix-ld.nix).
