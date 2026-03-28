@@ -17,6 +17,11 @@
       set -g fish_color_command green
       set -g fish_color_error red
       set -g fish_color_param blue
+
+      # Auto-attach tmux on interactive login (not inside tmux already)
+      if status is-interactive; and not set -q TMUX
+        exec tmux new-session -A -s main
+      end
     '';
 
     shellAbbrs = {

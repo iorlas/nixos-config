@@ -4,6 +4,7 @@
   imports = [
     ./cli/git.nix
     ./cli/fish.nix
+    ./cli/tmux.nix
     ./cli/direnv.nix
   ];
 
