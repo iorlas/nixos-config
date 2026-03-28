@@ -32,7 +32,20 @@ fix_or_hint() {
       ISSUES=$((ISSUES + 1))
     fi
   else
-    warn "$1  Fix: $2"
+    warn "$1"
+    echo -ne "     Fix now? [y/N] "
+    read -r REPLY
+    if [[ "$REPLY" =~ ^[Yy]$ ]]; then
+      echo -e "     Running: $2"
+      if eval "$2"; then
+        ok "Fixed"
+      else
+        fail "Fix failed"
+        ISSUES=$((ISSUES + 1))
+      fi
+    else
+      echo -e "     Skipped. Manual: $2"
+    fi
   fi
 }
 
