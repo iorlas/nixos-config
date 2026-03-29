@@ -14,12 +14,14 @@ FIX=false
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
+DIM='\033[2m'
 NC='\033[0m'
 ISSUES=0
 
 ok()   { echo -e "  ${GREEN}✓${NC} $1"; }
 warn() { echo -e "  ${YELLOW}→${NC} $1"; ISSUES=$((ISSUES + 1)); }
 fail() { echo -e "  ${RED}✗${NC} $1"; ISSUES=$((ISSUES + 1)); }
+hint() { echo -e "    ${DIM}$1${NC}"; }
 
 fix_or_hint() {
   # $1 = hint message, $2 = fix command
@@ -78,7 +80,9 @@ fi
 if [ -d "$HOME/.claude" ] && [ -f "$HOME/.claude/.credentials.json" ]; then
   ok "Authenticated"
 else
-  warn "Not authenticated. Run interactively: claude"
+  warn "Not authenticated"
+  hint "Run inside pix interactively: claude"
+  hint "It will open a browser link for OAuth"
 fi
 
 # ─── GitHub CLI ───────────────────────────────────────────────────────────────
@@ -89,7 +93,9 @@ if command -v gh &> /dev/null; then
     GH_USER=$(gh api user -q .login 2>/dev/null || echo "unknown")
     ok "Authenticated as $GH_USER"
   else
-    warn "Not authenticated. Run interactively: gh auth login"
+    warn "Not authenticated"
+    hint "Run inside pix interactively: gh auth login"
+    hint "Choose: GitHub.com → HTTPS → Login with browser"
   fi
 else
   fail "gh not installed"
@@ -102,7 +108,10 @@ if ssh-add -l &>/dev/null; then
   KEY_COUNT=$(ssh-add -l 2>/dev/null | wc -l | tr -d ' ')
   ok "$KEY_COUNT key(s) available"
 else
-  warn "No SSH keys available. Check SSH agent forwarding from Mac"
+  warn "No SSH keys available"
+  hint "OrbStack should forward your Mac's SSH agent automatically."
+  hint "If this fails, check on Mac: ssh-add -l"
+  hint "If Mac has no keys: ssh-keygen -t ed25519"
 fi
 
 # ─── iTerm2 Shell Integration ──────────────────────────────────────────────────
@@ -111,7 +120,7 @@ echo "==> iTerm2 Shell Integration"
 if [ -f "$HOME/.iterm2_shell_integration.fish" ]; then
   ok "Installed"
 else
-  fix_or_hint "Not installed" \
+  fix_or_hint "Not installed (command completion notifications won't work)" \
     "curl -fsSL https://iterm2.com/shell_integration/fish -o \$HOME/.iterm2_shell_integration.fish"
 fi
 
@@ -139,7 +148,9 @@ else
       fi
       ;;
     NeedsLogin)
-      warn "Needs auth. Run interactively: sudo tailscale up"
+      warn "Needs authentication"
+      hint "Run inside pix interactively: sudo tailscale up"
+      hint "It will print a URL — open it in your browser to authorize"
       ;;
     Stopped)
       fix_or_hint "Tailscale stopped" \
@@ -189,9 +200,11 @@ if systemctl is-active --quiet systemd-resolved; then
     ok "DNS-over-TLS via Quad9"
   else
     warn "DNS not using Quad9: $DNS_SERVERS"
+    hint "This should be configured by NixOS. Run: bootstrap"
   fi
 else
-  warn "systemd-resolved not running — DNS may leak"
+  warn "systemd-resolved not running — DNS may leak through corporate resolver"
+  hint "This should be configured by NixOS. Run: bootstrap"
 fi
 
 # ─── Summary ───────────────────────────────────────────────────────────────────
@@ -202,10 +215,17 @@ if [ "$ISSUES" -eq 0 ]; then
 else
   echo -e "${YELLOW}$ISSUES issue(s) found.${NC}"
   if ! $FIX; then
-    echo -e "Run ${YELLOW}doctor --fix${NC} to auto-fix."
+    echo -e "Run ${YELLOW}doctor --fix${NC} to auto-fix what can be fixed."
   fi
 fi
 
+# ─── Host-side checklist (always shown) ────────────────────────────────────────
+
 echo ""
-echo -e "Host-side: iTerm2 > Settings > General > tmux >"
-echo -e "  ${YELLOW}\"Automatically bury the tmux client session\"${NC} must be ON"
+echo -e "${DIM}Host-side (macOS) checklist:${NC}"
+echo -e "${DIM}  iTerm2 > Settings > General > tmux:${NC}"
+echo -e "${DIM}    • \"Automatically bury the tmux client session\" → ON${NC}"
+echo -e "${DIM}    • \"When attaching, restore windows as\" → your preference${NC}"
+echo -e "${DIM}  iTerm2 > Settings > Profiles > Terminal:${NC}"
+echo -e "${DIM}    • \"Notification center\" or \"Bounce dock icon\" → ON${NC}"
+echo -e "${DIM}    • (for command completion alerts from Claude Code)${NC}"
