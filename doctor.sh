@@ -105,6 +105,16 @@ else
   warn "No SSH keys available. Check SSH agent forwarding from Mac"
 fi
 
+# ─── iTerm2 Shell Integration ──────────────────────────────────────────────────
+
+echo "==> iTerm2 Shell Integration"
+if [ -f "$HOME/.iterm2_shell_integration.fish" ]; then
+  ok "Installed"
+else
+  fix_or_hint "Not installed" \
+    "curl -fsSL https://iterm2.com/shell_integration/fish -o \$HOME/.iterm2_shell_integration.fish"
+fi
+
 # ─── Tailscale ─────────────────────────────────────────────────────────────────
 
 echo "==> Tailscale"

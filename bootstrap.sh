@@ -30,6 +30,14 @@ else
   npm install -g @anthropic-ai/claude-code
 fi
 
+echo "==> iTerm2 Shell Integration"
+if [ -f "$HOME/.iterm2_shell_integration.fish" ]; then
+  echo "  Already installed"
+else
+  echo "  Installing..."
+  curl -fsSL https://iterm2.com/shell_integration/fish -o "$HOME/.iterm2_shell_integration.fish"
+fi
+
 echo ""
 echo "==> Running doctor..."
 bash "$REPO/doctor.sh"

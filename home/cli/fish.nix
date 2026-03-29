@@ -10,6 +10,12 @@
 
       # fnm (Node version manager)
       fnm env --use-on-cd --shell fish | source
+
+      # iTerm2 shell integration through tmux
+      set -gx ITERM_ENABLE_SHELL_INTEGRATION_WITH_TMUX YES
+
+      # Source iTerm2 shell integration (installed on first bootstrap)
+      test -e $HOME/.iterm2_shell_integration.fish && source $HOME/.iterm2_shell_integration.fish
     '';
 
     interactiveShellInit = ''
