@@ -1,5 +1,8 @@
 { config, pkgs, hostName, ... }:
 
+let
+  userName = if hostName == "fox" then "fox" else "iorlas";
+in
 {
   imports = [
     ./cli/git.nix
@@ -8,8 +11,8 @@
     ./cli/direnv.nix
   ];
 
-  home.username = "iorlas";
-  home.homeDirectory = "/home/iorlas";
+  home.username = userName;
+  home.homeDirectory = "/home/${userName}";
   home.stateVersion = "25.11";
 
   programs.home-manager.enable = true;

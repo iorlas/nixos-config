@@ -1,10 +1,6 @@
 #!/usr/bin/env bash
-# Health check for fox (Docker dev container).
-# Use --fix to auto-fix what can be fixed.
+# Health check for fox (bare user on shen).
 set -uo pipefail
-
-FIX=false
-[[ "${1:-}" == "--fix" ]] && FIX=true
 
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -22,10 +18,10 @@ hint() { echo -e "    ${DIM}$1${NC}"; }
 
 echo "==> Nix"
 if command -v nix &> /dev/null; then
-  NIX_VER=$(nix --version 2>/dev/null || echo "unknown")
-  ok "$NIX_VER"
+  ok "$(nix --version)"
 else
   fail "Nix not installed"
+  hint "Run: bootstrap"
 fi
 
 # ─── Home Manager ─────────────────────────────────────────────────────────────
@@ -36,7 +32,7 @@ if command -v home-manager &> /dev/null; then
   ok "Active: $HM_GEN"
 else
   fail "home-manager not on PATH"
-  hint "Run: nix run home-manager/master -- switch --flake ~/nixos-config#fox"
+  hint "Run: bootstrap"
 fi
 
 # ─── Claude Code ───────────────────────────────────────────────────────────────
@@ -48,7 +44,7 @@ if command -v claude &> /dev/null; then
   ok "Installed ($CLAUDE_VER)"
 else
   fail "Not installed"
-  hint "Run: pnpm add -g @anthropic-ai/claude-code"
+  hint "Run: npm install -g @anthropic-ai/claude-code"
 fi
 
 if [ -d "$HOME/.claude" ] && [ -f "$HOME/.claude/.credentials.json" ]; then
@@ -68,7 +64,6 @@ if command -v gh &> /dev/null; then
   else
     warn "Not authenticated"
     hint "Run: gh auth login"
-    hint "Choose: GitHub.com → HTTPS → Login with browser"
   fi
 else
   fail "gh not installed"
@@ -79,33 +74,52 @@ fi
 echo "==> Docker"
 if command -v docker &> /dev/null; then
   if docker info &>/dev/null; then
-    DOCKER_VER=$(docker --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
-    ok "Docker $DOCKER_VER"
+    ok "Docker $(docker --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)"
   else
-    fail "Docker daemon not responding"
-    hint "Check: systemctl status docker"
+    warn "Docker not accessible (check group membership)"
+    hint "Run: sudo usermod -aG docker fox && newgrp docker"
   fi
 else
-  fail "Docker not installed"
+  warn "Docker not found on PATH"
 fi
 
-# ─── SSH ──────────────────────────────────────────────────────────────────────
+# ─── SSH Keys ─────────────────────────────────────────────────────────────────
 
-echo "==> SSH"
-if systemctl is-active --quiet ssh 2>/dev/null; then
-  ok "sshd running"
+echo "==> SSH Keys"
+if [ -f "$HOME/.ssh/authorized_keys" ]; then
+  KEY_COUNT=$(wc -l < "$HOME/.ssh/authorized_keys")
+  ok "$KEY_COUNT authorized key(s)"
 else
-  fail "sshd not running"
-  hint "Check: systemctl status ssh"
+  warn "No authorized_keys"
+  hint "Run: curl -fsSL https://github.com/iorlas.keys > ~/.ssh/authorized_keys"
 fi
 
-# ─── cgroup ───────────────────────────────────────────────────────────────────
+# ─── Fish Shell ───────────────────────────────────────────────────────────────
 
-echo "==> cgroup"
-if [ -f /sys/fs/cgroup/cgroup.controllers ]; then
-  ok "cgroupv2 available"
+echo "==> Fish Shell"
+if [ -x "$HOME/.nix-profile/bin/fish" ]; then
+  ok "Fish available"
 else
-  warn "cgroupv2 not detected — systemd may have issues"
+  warn "Fish not found in nix profile"
+  hint "Run: nrs (home-manager switch)"
+fi
+
+if [ -f "$HOME/.bashrc" ] && grep -q "FISH_STARTED" "$HOME/.bashrc"; then
+  ok "Bash → Fish trampoline configured"
+else
+  warn "Bash → Fish trampoline missing"
+  hint "Run: cp ~/nixos-config/hosts/fox/defaults/bashrc ~/.bashrc"
+fi
+
+# ─── Home directory ───────────────────────────────────────────────────────────
+
+echo "==> Home directory"
+PERMS=$(stat -c '%a' "$HOME" 2>/dev/null || stat -f '%Lp' "$HOME" 2>/dev/null)
+if [ "$PERMS" = "700" ]; then
+  ok "Permissions: 700 (private)"
+else
+  warn "Permissions: $PERMS (should be 700)"
+  hint "Run: chmod 700 $HOME"
 fi
 
 # ─── Nix ad-hoc packages ─────────────────────────────────────────────────────
@@ -115,11 +129,10 @@ ADHOC=$(nix-env -q 2>/dev/null || echo "")
 if [ -z "$ADHOC" ]; then
   ok "No ad-hoc packages (clean)"
 else
-  warn "Ad-hoc packages installed (not in config, will vanish on rebuild):"
+  warn "Ad-hoc packages installed (not in config, add to home.packages to persist):"
   echo "$ADHOC" | while read -r pkg; do
     echo -e "    ${YELLOW}•${NC} $pkg"
   done
-  hint "Add these to home/default.nix home.packages to persist them."
 fi
 
 # ─── Summary ───────────────────────────────────────────────────────────────────
