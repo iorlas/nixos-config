@@ -41,38 +41,43 @@ RUN curl --proto '=https' --tlsv1.2 -sSf -L \
     https://install.determinate.systems/nix | sh -s -- install linux \
     --no-confirm --init none
 
-# Helper: each RUN step needs the daemon running for multi-user nix
-# nix-daemon is started in background, used for the step, then dies when RUN ends
-ENV NIX_PROFILE=/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+# Helper script: runs a command with nix-daemon in background
+RUN printf '#!/bin/bash\n\
+. /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh\n\
+/nix/var/nix/profiles/default/bin/nix-daemon &\n\
+sleep 2\n\
+exec "$@"\n' > /usr/local/bin/with-nix-daemon \
+    && chmod +x /usr/local/bin/with-nix-daemon
 
 # --- Home-manager switch (layer caching: flake inputs first) ---
 COPY --chown=iorlas:iorlas flake.nix flake.lock /home/iorlas/nixos-config/
 COPY --chown=iorlas:iorlas home/ /home/iorlas/nixos-config/home/
 COPY --chown=iorlas:iorlas hosts/fox/ /home/iorlas/nixos-config/hosts/fox/
 
-# Build and activate home-manager (start nix-daemon for this step)
+# Build and activate home-manager
 WORKDIR /home/iorlas/nixos-config
-RUN . $NIX_PROFILE \
-    && /nix/var/nix/profiles/default/bin/nix-daemon &>/dev/null & \
-    sleep 2 \
-    && nix build .#homeConfigurations.fox.activationPackage --no-link \
-    && su -c ". $NIX_PROFILE && \"\$(nix path-info .#homeConfigurations.fox.activationPackage)\"/activate" iorlas
+SHELL ["/bin/bash", "-c"]
+RUN with-nix-daemon bash -c '\
+    nix build .#homeConfigurations.fox.activationPackage --no-link \
+    && ACTIVATE=$(nix path-info .#homeConfigurations.fox.activationPackage) \
+    && su -c ". /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh && $ACTIVATE/activate" iorlas'
 
 # --- Claude Code ---
-RUN . $NIX_PROFILE \
-    && /nix/var/nix/profiles/default/bin/nix-daemon &>/dev/null & \
-    sleep 2 \
-    && su -c ". $NIX_PROFILE && export PATH=\"\$HOME/.nix-profile/bin:\$HOME/.npm-global/bin:\$PATH\" && mkdir -p \$HOME/.npm-global && npm config set prefix \$HOME/.npm-global && pnpm add -g @anthropic-ai/claude-code" iorlas
+RUN with-nix-daemon su -c 'bash -c "\
+    . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh \
+    && export PATH=\$HOME/.nix-profile/bin:\$HOME/.npm-global/bin:\$PATH \
+    && mkdir -p \$HOME/.npm-global \
+    && npm config set prefix \$HOME/.npm-global \
+    && pnpm add -g @anthropic-ai/claude-code"' iorlas
 
 # --- Clean up nix store ---
-RUN . $NIX_PROFILE \
-    && /nix/var/nix/profiles/default/bin/nix-daemon &>/dev/null & \
-    sleep 2 \
-    && nix-collect-garbage -d \
-    && nix store optimise
+RUN with-nix-daemon bash -c '\
+    nix-collect-garbage -d \
+    && nix store optimise'
 
 # --- Enable services ---
 RUN systemctl enable ssh docker
 
 STOPSIGNAL SIGRTMIN+3
+SHELL ["/bin/sh", "-c"]
 ENTRYPOINT ["/sbin/init"]
