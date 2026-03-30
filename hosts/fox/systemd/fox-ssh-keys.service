@@ -17,6 +17,10 @@ ExecStart=/bin/bash -c '\
     mkdir -p /home/iorlas/.ssh && chmod 700 /home/iorlas/.ssh; \
     cp /etc/fox-defaults/.ssh/authorized_keys /home/iorlas/.ssh/; \
     chown -R iorlas:iorlas /home/iorlas/.ssh; \
+  fi; \
+  if [ ! -f /home/iorlas/.bashrc ]; then \
+    cp /etc/fox-defaults/.bashrc /home/iorlas/.bashrc; \
+    chown iorlas:iorlas /home/iorlas/.bashrc; \
   fi'
 
 [Install]

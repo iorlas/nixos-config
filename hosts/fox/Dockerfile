@@ -24,6 +24,10 @@ RUN useradd -m -s /bin/bash -G sudo,docker iorlas \
     && echo "iorlas ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/iorlas \
     && chmod 440 /etc/sudoers.d/iorlas
 
+# --- Bash → Fish trampoline (staged for first-boot copy) ---
+RUN mkdir -p /etc/fox-defaults \
+    && printf '# Switch to fish if available (login shell is bash, fish is managed by nix)\nif [ -x "$HOME/.nix-profile/bin/fish" ] && [[ $- == *i* ]] && [ -z "$FISH_STARTED" ]; then\n  export FISH_STARTED=1\n  exec "$HOME/.nix-profile/bin/fish" -l\nfi\n' > /etc/fox-defaults/.bashrc
+
 # --- SSH authorized keys from GitHub (staged for first-boot copy) ---
 RUN mkdir -p /etc/fox-defaults/.ssh \
     && curl -fsSL https://github.com/iorlas.keys > /etc/fox-defaults/.ssh/authorized_keys \
