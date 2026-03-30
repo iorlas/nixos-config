@@ -1,0 +1,11 @@
+# Bash → Fish trampoline
+# Login shell is bash (Ubuntu default). Fish is managed by nix home-manager.
+# This trampoline exec's into fish on interactive login.
+#
+# NOTE: This works because Ubuntu's ~/.profile sources ~/.bashrc for
+# interactive bash sessions. If a ~/.bash_profile is ever created, it
+# takes precedence over ~/.profile and this trampoline may not fire.
+if [ -x "$HOME/.nix-profile/bin/fish" ] && [[ $- == *i* ]] && [ -z "$FISH_STARTED" ]; then
+  export FISH_STARTED=1
+  exec "$HOME/.nix-profile/bin/fish" -l
+fi

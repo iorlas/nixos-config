@@ -1,0 +1,8 @@
+#!/bin/bash
+# Helper: starts nix-daemon in background for Docker RUN steps.
+# Multi-user nix requires the daemon for nix commands, but there's
+# no systemd during docker build.
+. /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+/nix/var/nix/profiles/default/bin/nix-daemon &
+sleep 2
+exec "$@"
