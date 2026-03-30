@@ -60,7 +60,7 @@ SHELL ["/bin/bash", "-c"]
 RUN with-nix-daemon bash -c '\
     nix build .#homeConfigurations.fox.activationPackage --no-link \
     && ACTIVATE=$(nix path-info .#homeConfigurations.fox.activationPackage) \
-    && su -c ". /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh && $ACTIVATE/activate" iorlas'
+    && su -l -c "export PATH=/nix/var/nix/profiles/default/bin:\$PATH && $ACTIVATE/activate" iorlas'
 
 # --- Claude Code ---
 RUN with-nix-daemon su -c 'bash -c "\
