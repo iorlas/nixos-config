@@ -8,6 +8,33 @@ Docker adds unnecessary complexity and overhead for fox's use case. The primary 
 
 A dedicated `fox` user on shen with nix home-manager (standalone). Same shared configs as the Docker version. Direct SSH access on shen's existing port 2201.
 
+## Nix config change: parameterize username
+
+`home/default.nix` currently hardcodes `iorlas`. Fox user is `fox`. Need:
+
+```nix
+{ config, pkgs, hostName, ... }:
+let
+  userName = if hostName == "fox" then "fox" else "iorlas";
+in
+{
+  home.username = userName;
+  home.homeDirectory = "/home/${userName}";
+  ...
+}
+```
+
+Also update `flake.nix` fox config — the `fox` user's home-manager needs correct pkgs path.
+
+## Cleanup Docker V1
+
+On shen, before or after setup:
+```bash
+docker rm -f fox 2>/dev/null
+docker rmi fox-fox 2>/dev/null
+docker volume rm fox_home fox_docker 2>/dev/null
+```
+
 ## What stays from V1
 
 - `flake.nix` — `homeConfigurations.fox` (x86_64-linux, standalone home-manager)
@@ -299,7 +326,7 @@ complete -c fox-connect -f -a '(ssh fox ls ~/Workspaces/ 2>/dev/null)'
 
 ## File Operations
 
-### Deleted (5)
+### Deleted (6)
 - `hosts/fox/Dockerfile`
 - `hosts/fox/docker-compose.yml`
 - `hosts/fox/.env.example`
@@ -312,7 +339,8 @@ complete -c fox-connect -f -a '(ssh fox ls ~/Workspaces/ 2>/dev/null)'
 - `hosts/fox/doctor.sh` — bare-user health checks
 - `scripts/fox-connect.sh` — HOST="fox", no port override
 
-### Modified (1)
+### Modified (2)
+- `home/default.nix` — parameterize username/homeDirectory by hostName
 - `scripts/fox-connect.fish` — ssh fox instead of ssh fox with port
 
 ### Unchanged (all nix configs)
