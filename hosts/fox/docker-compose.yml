@@ -1,0 +1,39 @@
+services:
+  fox:
+    build:
+      context: ../..
+      dockerfile: hosts/fox/Dockerfile
+    container_name: fox
+    hostname: fox
+    restart: unless-stopped
+    tty: true
+    stdin_open: true
+    cap_add:
+      - SYS_ADMIN
+      - NET_ADMIN
+      - MKNOD
+      - NET_RAW
+    security_opt:
+      - seccomp:unconfined
+      - apparmor:unconfined
+    # Fallback if capabilities aren't enough for systemd + dockerd:
+    # privileged: true
+    volumes:
+      - home:/home/iorlas
+      - docker:/var/lib/docker
+    tmpfs:
+      - /run
+      - /run/lock
+    ports:
+      - "${TAILSCALE_IP}:2222:22"
+    mem_limit: 16g
+    cpus: 4
+    healthcheck:
+      test: ["CMD-SHELL", "systemctl is-system-running | grep -qE 'running|degraded'"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  home:
+  docker:

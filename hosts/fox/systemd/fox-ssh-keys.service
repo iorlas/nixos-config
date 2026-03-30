@@ -1,0 +1,23 @@
+[Unit]
+Description=Restore/save SSH host keys + ensure authorized_keys
+Before=ssh.service
+ConditionPathIsDirectory=/home/iorlas
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/bash -c '\
+  KEYS_DIR=/home/iorlas/.fox-ssh-keys; \
+  if [ -d "$KEYS_DIR" ] && [ -n "$(ls -A $KEYS_DIR 2>/dev/null)" ]; then \
+    cp $KEYS_DIR/ssh_host_* /etc/ssh/ && chmod 600 /etc/ssh/ssh_host_*_key; \
+  else \
+    mkdir -p $KEYS_DIR && cp /etc/ssh/ssh_host_* $KEYS_DIR/ && chown -R iorlas:iorlas $KEYS_DIR; \
+  fi; \
+  if [ ! -f /home/iorlas/.ssh/authorized_keys ]; then \
+    mkdir -p /home/iorlas/.ssh && chmod 700 /home/iorlas/.ssh; \
+    cp /etc/fox-defaults/.ssh/authorized_keys /home/iorlas/.ssh/; \
+    chown -R iorlas:iorlas /home/iorlas/.ssh; \
+  fi'
+
+[Install]
+WantedBy=multi-user.target
