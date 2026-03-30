@@ -41,23 +41,33 @@ RUN curl --proto '=https' --tlsv1.2 -sSf -L \
     https://install.determinate.systems/nix | sh -s -- install linux \
     --no-confirm --init none
 
+# Helper: each RUN step needs the daemon running for multi-user nix
+# nix-daemon is started in background, used for the step, then dies when RUN ends
+ENV NIX_PROFILE=/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+
 # --- Home-manager switch (layer caching: flake inputs first) ---
 COPY --chown=iorlas:iorlas flake.nix flake.lock /home/iorlas/nixos-config/
 COPY --chown=iorlas:iorlas home/ /home/iorlas/nixos-config/home/
 COPY --chown=iorlas:iorlas hosts/fox/ /home/iorlas/nixos-config/hosts/fox/
 
-# Build home-manager as root (nix daemon not running during build), activate as iorlas
+# Build and activate home-manager (start nix-daemon for this step)
 WORKDIR /home/iorlas/nixos-config
-RUN . /nix/var/nix/profiles/default/etc/profile.d/nix.sh \
+RUN . $NIX_PROFILE \
+    && /nix/var/nix/profiles/default/bin/nix-daemon &>/dev/null & \
+    sleep 2 \
     && nix build .#homeConfigurations.fox.activationPackage --no-link \
-    && su -c '. /nix/var/nix/profiles/default/etc/profile.d/nix.sh && "$(nix path-info .#homeConfigurations.fox.activationPackage)"/activate' iorlas
+    && su -c ". $NIX_PROFILE && \"\$(nix path-info .#homeConfigurations.fox.activationPackage)\"/activate" iorlas
 
 # --- Claude Code ---
-RUN . /nix/var/nix/profiles/default/etc/profile.d/nix.sh \
-    && su -c '. /nix/var/nix/profiles/default/etc/profile.d/nix.sh && export PATH="$HOME/.nix-profile/bin:$HOME/.npm-global/bin:$PATH" && mkdir -p $HOME/.npm-global && npm config set prefix $HOME/.npm-global && pnpm add -g @anthropic-ai/claude-code' iorlas
+RUN . $NIX_PROFILE \
+    && /nix/var/nix/profiles/default/bin/nix-daemon &>/dev/null & \
+    sleep 2 \
+    && su -c ". $NIX_PROFILE && export PATH=\"\$HOME/.nix-profile/bin:\$HOME/.npm-global/bin:\$PATH\" && mkdir -p \$HOME/.npm-global && npm config set prefix \$HOME/.npm-global && pnpm add -g @anthropic-ai/claude-code" iorlas
 
 # --- Clean up nix store ---
-RUN . /nix/var/nix/profiles/default/etc/profile.d/nix.sh \
+RUN . $NIX_PROFILE \
+    && /nix/var/nix/profiles/default/bin/nix-daemon &>/dev/null & \
+    sleep 2 \
     && nix-collect-garbage -d \
     && nix store optimise
 
