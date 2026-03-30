@@ -8,16 +8,9 @@ services:
     restart: unless-stopped
     tty: true
     stdin_open: true
-    cap_add:
-      - SYS_ADMIN
-      - NET_ADMIN
-      - MKNOD
-      - NET_RAW
-    security_opt:
-      - seccomp:unconfined
-      - apparmor:unconfined
-    # Fallback if capabilities aren't enough for systemd + dockerd:
-    # privileged: true
+    # Capabilities alone aren't enough for systemd cgroups in Docker.
+    # TODO: Replace with Sysbox runtime in V2 to drop privileged mode.
+    privileged: true
     volumes:
       - home:/home/iorlas
       - docker:/var/lib/docker
