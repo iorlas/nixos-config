@@ -62,13 +62,12 @@ RUN with-nix-daemon bash -c '\
     && ACTIVATE=$(nix path-info .#homeConfigurations.fox.activationPackage) \
     && su -l -c "export PATH=/nix/var/nix/profiles/default/bin:\$PATH && $ACTIVATE/activate" iorlas'
 
-# --- Claude Code ---
-RUN with-nix-daemon su -c 'bash -c "\
-    . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh \
-    && export PATH=\$HOME/.nix-profile/bin:\$HOME/.npm-global/bin:\$PATH \
-    && mkdir -p \$HOME/.npm-global \
-    && npm config set prefix \$HOME/.npm-global \
-    && pnpm add -g @anthropic-ai/claude-code"' iorlas
+# --- Claude Code (use npm for global install — simpler than pnpm global config) ---
+RUN with-nix-daemon su -l -c '\
+    export PATH=/nix/var/nix/profiles/default/bin:$HOME/.nix-profile/bin:$HOME/.npm-global/bin:$PATH \
+    && mkdir -p $HOME/.npm-global \
+    && npm config set prefix $HOME/.npm-global \
+    && npm install -g @anthropic-ai/claude-code' iorlas
 
 # --- Clean up nix store ---
 RUN with-nix-daemon bash -c '\
