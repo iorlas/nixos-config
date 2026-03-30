@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, hostName, ... }:
 
 {
   programs.tmux = {
@@ -49,9 +49,9 @@
       # Window behavior
       set -g renumber-windows on
 
-      # Window/terminal title — shows "session-name @ pix"
+      # Window/terminal title — shows "session-name @ hostname"
       set -g set-titles on
-      set -g set-titles-string "#S @ pix"
+      set -g set-titles-string "#S @ ${hostName}"
       set -g automatic-rename on
 
       # Don't kill sessions — detach instead of exit on window close

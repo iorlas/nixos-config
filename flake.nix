@@ -1,5 +1,5 @@
 {
-  description = "NixOS config for OrbStack dev VMs";
+  description = "Dev environment configs — NixOS VMs and Docker containers";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -19,6 +19,7 @@
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
           home-manager.users.iorlas = import ./home;
+          home-manager.extraSpecialArgs = { hostName = "pix"; };
         }
       ];
     };
