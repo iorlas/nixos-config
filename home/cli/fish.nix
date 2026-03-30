@@ -1,5 +1,8 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, hostName, ... }:
 
+let
+  isPix = hostName == "pix";
+in
 {
   programs.fish = {
     enable = true;
@@ -59,57 +62,78 @@
     };
 
     shellAliases = {
-      nrs = "sudo nixos-rebuild switch --flake /mnt/mac/Users/iorlas/nixos-config#pix --impure";
+      nrs = if isPix
+        then "sudo nixos-rebuild switch --flake /mnt/mac/Users/iorlas/nixos-config#pix --impure"
+        else "home-manager switch --flake ~/nixos-config#fox";
     };
 
-    functions = {
-      _check_exit_node = {
-        description = "Block if traffic is not routed through shen";
-        body = ''
-          set -l exit_id (tailscale status -json 2>/dev/null | jq -r '.ExitNodeStatus.ID // empty' 2>/dev/null)
-          if test -z "$exit_id"
-            set_color red --bold
-            echo "BLOCKED: traffic is not routed through shen."
-            set_color normal
-            echo "Run: doctor --fix"
-            return 1
-          end
-        '';
-      };
-      claude = {
-        description = "Claude Code with exit node guard";
-        body = ''
-          _check_exit_node; or return 1
-          command claude $argv
-        '';
-      };
-      c = {
-        description = "Claude Code shortcut with exit node guard";
-        body = ''
-          _check_exit_node; or return 1
-          command claude $argv
-        '';
-      };
-      fish_greeting = {
-        description = "Check tailscale exit node on shell start";
-        body = ''
-          if command -q tailscale
+    functions = lib.mkMerge [
+      # Shared functions (both hosts)
+      {
+        claude = {
+          description = "Claude Code";
+          body = if isPix then ''
+            _check_exit_node; or return 1
+            command claude $argv
+          '' else ''
+            command claude $argv
+          '';
+        };
+        c = {
+          description = "Claude Code shortcut";
+          body = if isPix then ''
+            _check_exit_node; or return 1
+            command claude $argv
+          '' else ''
+            command claude $argv
+          '';
+        };
+      }
+      # Pix-only functions
+      (lib.mkIf isPix {
+        _check_exit_node = {
+          description = "Block if traffic is not routed through shen";
+          body = ''
             set -l exit_id (tailscale status -json 2>/dev/null | jq -r '.ExitNodeStatus.ID // empty' 2>/dev/null)
             if test -z "$exit_id"
-              set_color -b red white --bold
-              echo ""
-              echo "  !! TRAFFIC IS NOT ROUTED THROUGH SHEN !!  "
-              echo ""
+              set_color red --bold
+              echo "BLOCKED: traffic is not routed through shen."
               set_color normal
-              set_color yellow
-              echo "  run: doctor --fix"
-              echo ""
-              set_color normal
+              echo "Run: doctor --fix"
+              return 1
             end
-          end
-        '';
-      };
-    };
+          '';
+        };
+        fish_greeting = {
+          description = "Check tailscale exit node on shell start";
+          body = ''
+            if command -q tailscale
+              set -l exit_id (tailscale status -json 2>/dev/null | jq -r '.ExitNodeStatus.ID // empty' 2>/dev/null)
+              if test -z "$exit_id"
+                set_color -b red white --bold
+                echo ""
+                echo "  !! TRAFFIC IS NOT ROUTED THROUGH SHEN !!  "
+                echo ""
+                set_color normal
+                set_color yellow
+                echo "  run: doctor --fix"
+                echo ""
+                set_color normal
+              end
+            end
+          '';
+        };
+      })
+      # Fox-only functions
+      (lib.mkIf (!isPix) {
+        fish_greeting = {
+          description = "Fox greeting";
+          body = ''
+            # No greeting on fox
+          '';
+        };
+      })
+    ];
 
     plugins = [
       { name = "tide"; src = pkgs.fishPlugins.tide.src; }
@@ -122,7 +146,6 @@
 
   programs.zoxide = {
     enable = true;
-    # replaces cd with zoxide
   };
 
   programs.atuin = {
