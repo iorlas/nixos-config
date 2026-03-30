@@ -36,30 +36,25 @@ RUN systemctl enable fox-ssh-keys.service
 # --- Disable password auth ---
 RUN sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
 
-# --- Install Nix (single-user/root-only for Docker build) ---
+# --- Install Nix (multi-user, --init none for Docker build without systemd) ---
 RUN curl --proto '=https' --tlsv1.2 -sSf -L \
     https://install.determinate.systems/nix | sh -s -- install linux \
-    --no-confirm --init none --mode root-only
+    --no-confirm --init none
 
 # --- Home-manager switch (layer caching: flake inputs first) ---
 COPY --chown=iorlas:iorlas flake.nix flake.lock /home/iorlas/nixos-config/
 COPY --chown=iorlas:iorlas home/ /home/iorlas/nixos-config/home/
 COPY --chown=iorlas:iorlas hosts/fox/ /home/iorlas/nixos-config/hosts/fox/
 
-USER iorlas
+# Build home-manager as root (nix daemon not running during build), activate as iorlas
 WORKDIR /home/iorlas/nixos-config
 RUN . /nix/var/nix/profiles/default/etc/profile.d/nix.sh \
     && nix build .#homeConfigurations.fox.activationPackage --no-link \
-    && "$(nix path-info .#homeConfigurations.fox.activationPackage)"/activate
+    && su -c '. /nix/var/nix/profiles/default/etc/profile.d/nix.sh && "$(nix path-info .#homeConfigurations.fox.activationPackage)"/activate' iorlas
 
 # --- Claude Code ---
 RUN . /nix/var/nix/profiles/default/etc/profile.d/nix.sh \
-    && export PATH="$HOME/.nix-profile/bin:$HOME/.npm-global/bin:$PATH" \
-    && mkdir -p /home/iorlas/.npm-global \
-    && npm config set prefix /home/iorlas/.npm-global \
-    && pnpm add -g @anthropic-ai/claude-code
-
-USER root
+    && su -c '. /nix/var/nix/profiles/default/etc/profile.d/nix.sh && export PATH="$HOME/.nix-profile/bin:$HOME/.npm-global/bin:$PATH" && mkdir -p $HOME/.npm-global && npm config set prefix $HOME/.npm-global && pnpm add -g @anthropic-ai/claude-code' iorlas
 
 # --- Clean up nix store ---
 RUN . /nix/var/nix/profiles/default/etc/profile.d/nix.sh \
