@@ -16,11 +16,11 @@
 
   # Put bootstrap/doctor on PATH as real scripts (work in any shell, non-interactive too)
   home.file.".local/bin/bootstrap" = {
-    source = ../bootstrap.sh;
+    source = ../hosts/pix/bootstrap.sh;
     executable = true;
   };
   home.file.".local/bin/doctor" = {
-    source = ../doctor.sh;
+    source = ../hosts/pix/doctor.sh;
     executable = true;
   };
 }
