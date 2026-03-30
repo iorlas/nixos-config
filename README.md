@@ -111,3 +111,60 @@ orb delete pix
 orb create nixos:25.11 pix
 orb run -m pix bash /mnt/mac/Users/iorlas/nixos-config/bootstrap.sh
 ```
+
+## Fox (Docker dev container on shen)
+
+Fox is a Docker container running on shen (personal VPS), providing an isolated dev environment safe from corporate MDM.
+
+### First-time setup
+
+1. SSH into shen: `ssh shen`
+2. Clone this repo: `git clone git@github.com:iorlas/nixos-config.git && cd nixos-config`
+3. Create `.env` in `hosts/fox/`:
+   ```bash
+   echo "TAILSCALE_IP=$(tailscale ip -4)" > hosts/fox/.env
+   ```
+4. Build and start: `cd hosts/fox && docker compose build && docker compose up -d`
+5. Bootstrap: `docker exec -it fox bash -c "doctor"`
+6. Authenticate (inside fox): `gh auth login`, then `claude`
+
+### Mac-side setup
+
+Add to `~/.ssh/config`:
+```
+Host fox
+    HostName shen.your-tailnet.ts.net
+    Port 2222
+    User iorlas
+```
+
+Add to your fish config:
+```fish
+alias fox-connect="~/.local/bin/fox-connect"
+```
+
+### Day-to-day usage
+
+| Command | What it does |
+|---------|-------------|
+| `fox-connect` | Reconnect all tmux sessions via iTerm2 |
+| `fox-connect myproject` | Create/attach project session |
+| `ssh fox` | Quick shell |
+| `nrs` | Apply config changes (home-manager switch) |
+| `doctor` | Health check |
+
+### Dev port forwarding
+
+```bash
+ssh -L 8080:localhost:8080 fox    # forward one port
+ssh -L 8080:localhost:8080 -L 5432:localhost:5432 fox  # multiple
+```
+
+### Weekly rebuild
+
+```bash
+ssh shen
+cd nixos-config/hosts/fox
+docker compose build && docker compose up -d
+docker exec -u iorlas fox home-manager switch --flake ~/nixos-config#fox
+```
