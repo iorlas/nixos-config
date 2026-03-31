@@ -74,22 +74,34 @@ in
     functions = lib.mkMerge [
       # Shared functions (both hosts)
       {
+        _claude_with_plugins = {
+          description = "Build plugin-dir flags from ~/.config/claude/plugin-dirs";
+          body = ''
+            set -l flags
+            if test -f ~/.config/claude/plugin-dirs
+              for dir in (string match -v '#*' < ~/.config/claude/plugin-dirs | string trim)
+                test -n "$dir" && set -a flags --plugin-dir $dir
+              end
+            end
+            command claude $flags $argv
+          '';
+        };
         claude = {
           description = "Claude Code";
           body = if isPix then ''
             _check_exit_node; or return 1
-            command claude $argv
+            _claude_with_plugins $argv
           '' else ''
-            command claude $argv
+            _claude_with_plugins $argv
           '';
         };
         c = {
           description = "Claude Code shortcut";
           body = if isPix then ''
             _check_exit_node; or return 1
-            command claude $argv
+            _claude_with_plugins $argv
           '' else ''
-            command claude $argv
+            _claude_with_plugins $argv
           '';
         };
       }
