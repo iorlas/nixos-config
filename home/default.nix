@@ -26,6 +26,12 @@ in
     executable = true;
   };
 
+  # Claude Code statusline
+  home.file.".claude/hooks/kay-statusline.sh" = {
+    source = ./cli/claude-statusline.sh;
+    executable = true;
+  };
+
   home.packages = with pkgs; [
     # Node.js
     nodejs_22
