@@ -72,3 +72,9 @@ echo ""
 echo "==> Running doctor..."
 export PATH="$HOME/.local/bin:$HOME/.npm-global/bin:$HOME/.nix-profile/bin:$PATH"
 doctor
+
+echo ""
+echo "==> Manual steps remaining:"
+echo "  1. tide configure    (set up fish prompt — fixes tide errors)"
+echo "  2. gh auth login     (GitHub CLI authentication)"
+echo "  3. claude            (Claude Code first-run auth)"
