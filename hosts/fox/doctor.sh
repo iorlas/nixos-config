@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 # Health check for fox (bare user on shen).
+# Use --fix to auto-fix what can be fixed.
 set -uo pipefail
+
+FIX=false
+[[ "${1:-}" == "--fix" ]] && FIX=true
 
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -13,6 +17,21 @@ ok()   { echo -e "  ${GREEN}✓${NC} $1"; }
 warn() { echo -e "  ${YELLOW}→${NC} $1"; ISSUES=$((ISSUES + 1)); }
 fail() { echo -e "  ${RED}✗${NC} $1"; ISSUES=$((ISSUES + 1)); }
 hint() { echo -e "    ${DIM}$1${NC}"; }
+
+fix_or_hint() {
+  # $1 = hint message, $2 = fix command
+  if $FIX; then
+    echo -e "  ${YELLOW}→${NC} Fixing: $2"
+    if eval "$2"; then
+      ok "Fixed"
+    else
+      fail "Fix failed"
+    fi
+  else
+    warn "$1"
+    hint "$2"
+  fi
+}
 
 # ─── Nix ──────────────────────────────────────────────────────────────────────
 
@@ -52,6 +71,23 @@ if [ -d "$HOME/.claude" ] && [ -f "$HOME/.claude/.credentials.json" ]; then
 else
   warn "Not authenticated"
   hint "Run: claude (first-run opens browser auth)"
+fi
+
+if [ -f "$HOME/.claude/settings.json" ] && grep -q "kay-statusline" "$HOME/.claude/settings.json"; then
+  ok "Statusline configured"
+else
+  fix_or_hint "Statusline not configured in settings.json" \
+    "mkdir -p $HOME/.claude && cat > $HOME/.claude/settings.json << 'SETTINGS'
+{
+  \"permissions\": {
+    \"defaultMode\": \"bypassPermissions\"
+  },
+  \"statusLine\": {
+    \"type\": \"command\",
+    \"command\": \"bash ~/.claude/hooks/kay-statusline.sh\"
+  }
+}
+SETTINGS"
 fi
 
 # ─── GitHub CLI ───────────────────────────────────────────────────────────────
