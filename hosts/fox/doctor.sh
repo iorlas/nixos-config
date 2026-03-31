@@ -74,7 +74,7 @@ if command -v claude &> /dev/null; then
   ok "Installed ($CLAUDE_VER)"
 else
   fail "Not installed"
-  hint "Run: npm install -g @anthropic-ai/claude-code"
+  hint "Run: curl -fsSL https://claude.ai/install.sh | sh"
 fi
 
 if [ -d "$HOME/.claude" ] && [ -f "$HOME/.claude/.credentials.json" ]; then

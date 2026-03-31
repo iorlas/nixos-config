@@ -61,14 +61,12 @@ echo "==> Workspace directories"
 mkdir -p "$HOME/Documents" "$HOME/Workspaces"
 
 echo "==> Claude Code"
-mkdir -p "$HOME/.npm-global"
-npm config set prefix "$HOME/.npm-global" 2>/dev/null
-export PATH="$HOME/.npm-global/bin:$HOME/.nix-profile/bin:$PATH"
+export PATH="$HOME/.local/bin:$HOME/.npm-global/bin:$HOME/.nix-profile/bin:$PATH"
 if command -v claude &> /dev/null; then
   echo "  Already installed ($(claude --version 2>&1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1))"
 else
-  echo "  Installing..."
-  npm install -g @anthropic-ai/claude-code
+  echo "  Installing via native installer..."
+  curl -fsSL https://claude.ai/install.sh | sh
 fi
 
 echo "==> iTerm2 Shell Integration"
