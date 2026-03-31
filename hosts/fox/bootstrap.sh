@@ -57,6 +57,9 @@ fi
 echo "==> Home directory permissions"
 chmod 700 "$HOME"
 
+echo "==> Workspace directories"
+mkdir -p "$HOME/Documents" "$HOME/Workspaces"
+
 echo "==> Claude Code"
 mkdir -p "$HOME/.npm-global"
 npm config set prefix "$HOME/.npm-global" 2>/dev/null
