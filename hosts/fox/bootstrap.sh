@@ -66,7 +66,7 @@ if command -v claude &> /dev/null; then
   echo "  Already installed ($(claude --version 2>&1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1))"
 else
   echo "  Installing via native installer..."
-  curl -fsSL https://claude.ai/install.sh | sh
+  curl -fsSL https://claude.ai/install.sh | bash
 fi
 
 echo "==> iTerm2 Shell Integration"
