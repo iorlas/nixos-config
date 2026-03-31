@@ -2,6 +2,10 @@
 
 let
   isPix = hostName == "pix";
+  iterm2-shell-integration = builtins.fetchurl {
+    url = "https://iterm2.com/shell_integration/fish";
+    sha256 = "13c222l8q26ixpv7f45m18wwkqssmz37ir00nkhix52cfknfv938";
+  };
 in
 {
   programs.fish = {
@@ -17,8 +21,8 @@ in
       # iTerm2 shell integration through tmux
       set -gx ITERM_ENABLE_SHELL_INTEGRATION_WITH_TMUX YES
 
-      # Source iTerm2 shell integration (installed on first bootstrap)
-      test -e $HOME/.iterm2_shell_integration.fish && source $HOME/.iterm2_shell_integration.fish
+      # Source iTerm2 shell integration (managed by home-manager)
+      source $HOME/.iterm2_shell_integration.fish
     '';
 
     interactiveShellInit = ''
@@ -170,4 +174,7 @@ in
 
   programs.ripgrep.enable = true;
   programs.fd.enable = true;
+
+  # iTerm2 shell integration (managed by nix, no manual download)
+  home.file.".iterm2_shell_integration.fish".source = iterm2-shell-integration;
 }
