@@ -77,17 +77,7 @@ if [ -f "$HOME/.claude/settings.json" ] && grep -q "kay-statusline" "$HOME/.clau
   ok "Statusline configured"
 else
   fix_or_hint "Statusline not configured in settings.json" \
-    "mkdir -p $HOME/.claude && cat > $HOME/.claude/settings.json << 'SETTINGS'
-{
-  \"permissions\": {
-    \"defaultMode\": \"bypassPermissions\"
-  },
-  \"statusLine\": {
-    \"type\": \"command\",
-    \"command\": \"bash ~/.claude/hooks/kay-statusline.sh\"
-  }
-}
-SETTINGS"
+    "mkdir -p \$HOME/.claude && if [ -f \$HOME/.claude/settings.json ]; then jq '.statusLine = {\"type\": \"command\", \"command\": \"bash ~/.claude/hooks/kay-statusline.sh\"}' \$HOME/.claude/settings.json > \$HOME/.claude/settings.json.tmp && mv \$HOME/.claude/settings.json.tmp \$HOME/.claude/settings.json; else echo '{\"statusLine\": {\"type\": \"command\", \"command\": \"bash ~/.claude/hooks/kay-statusline.sh\"}}' > \$HOME/.claude/settings.json; fi"
 fi
 
 # ─── GitHub CLI ───────────────────────────────────────────────────────────────
