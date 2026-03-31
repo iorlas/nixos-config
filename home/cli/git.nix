@@ -3,8 +3,12 @@
 {
   programs.git = {
     enable = true;
-    userName = "Denis Tomilin (iorlas)";
-    userEmail = "dt0xff@gmail.com";
-    delta.enable = true;
+    settings.user.name = "Denis Tomilin (iorlas)";
+    settings.user.email = "dt0xff@gmail.com";
+  };
+
+  programs.delta = {
+    enable = true;
+    enableGitIntegration = true;
   };
 }
