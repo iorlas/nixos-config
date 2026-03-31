@@ -33,6 +33,17 @@ fix_or_hint() {
   fi
 }
 
+fix_claude_statusline() {
+  mkdir -p "$HOME/.claude"
+  local file="$HOME/.claude/settings.json"
+  if [ -f "$file" ]; then
+    jq '.statusLine = {"type": "command", "command": "bash ~/.claude/hooks/kay-statusline.sh"}' \
+      "$file" > "$file.tmp" && mv "$file.tmp" "$file"
+  else
+    echo '{"statusLine": {"type": "command", "command": "bash ~/.claude/hooks/kay-statusline.sh"}}' > "$file"
+  fi
+}
+
 # ─── Nix ──────────────────────────────────────────────────────────────────────
 
 echo "==> Nix"
@@ -76,8 +87,7 @@ fi
 if [ -f "$HOME/.claude/settings.json" ] && grep -q "kay-statusline" "$HOME/.claude/settings.json"; then
   ok "Statusline configured"
 else
-  fix_or_hint "Statusline not configured in settings.json" \
-    "mkdir -p \$HOME/.claude && if [ -f \$HOME/.claude/settings.json ]; then jq '.statusLine = {\"type\": \"command\", \"command\": \"bash ~/.claude/hooks/kay-statusline.sh\"}' \$HOME/.claude/settings.json > \$HOME/.claude/settings.json.tmp && mv \$HOME/.claude/settings.json.tmp \$HOME/.claude/settings.json; else echo '{\"statusLine\": {\"type\": \"command\", \"command\": \"bash ~/.claude/hooks/kay-statusline.sh\"}}' > \$HOME/.claude/settings.json; fi"
+  fix_or_hint "Statusline not configured in settings.json" "fix_claude_statusline"
 fi
 
 # ─── GitHub CLI ───────────────────────────────────────────────────────────────
