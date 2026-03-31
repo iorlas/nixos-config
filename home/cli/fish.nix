@@ -68,7 +68,7 @@ in
     shellAliases = {
       nrs = if isPix
         then "sudo nixos-rebuild switch --flake /mnt/mac/Users/iorlas/nixos-config#pix --impure"
-        else "git -C ~/nixos-config pull && home-manager switch --flake ~/nixos-config#fox";
+        else "git -C ~/nixos-config pull && home-manager switch --flake ~/nixos-config#fox && exec fish";
     };
 
     functions = lib.mkMerge [
