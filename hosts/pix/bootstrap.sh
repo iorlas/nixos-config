@@ -2,7 +2,7 @@
 # One-time setup for pix (OrbStack NixOS VM). Idempotent — safe to re-run.
 #
 # Usage:
-#   orb run -m pix bash /mnt/mac/Users/iorlas/nixos-config/bootstrap.sh
+#   orb run -m pix bash /mnt/mac/Users/iorlas/nixos-config/hosts/pix/bootstrap.sh
 
 set -euo pipefail
 
@@ -20,24 +20,20 @@ echo "==> NixOS rebuild"
 sudo env PATH="$PATH" nixos-rebuild switch --flake "$REPO#pix" --impure
 
 echo "==> Claude Code"
-mkdir -p "$HOME/.npm-global"
-npm config set prefix "$HOME/.npm-global" 2>/dev/null
-export PATH="$HOME/.npm-global/bin:$PATH"
+export PATH="$HOME/.local/bin:$HOME/.npm-global/bin:$HOME/.nix-profile/bin:$PATH"
 if command -v claude &> /dev/null; then
   echo "  Already installed ($(claude --version 2>&1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1))"
 else
   echo "  Installing..."
-  npm install -g @anthropic-ai/claude-code
-fi
-
-echo "==> iTerm2 Shell Integration"
-if [ -f "$HOME/.iterm2_shell_integration.fish" ]; then
-  echo "  Already installed"
-else
-  echo "  Installing..."
-  curl -fsSL https://iterm2.com/shell_integration/fish -o "$HOME/.iterm2_shell_integration.fish"
+  curl -fsSL https://claude.ai/install.sh | bash
 fi
 
 echo ""
 echo "==> Running doctor..."
-bash "$REPO/doctor.sh"
+doctor
+
+echo ""
+echo "==> Manual steps remaining:"
+echo "  1. tide configure    (set up fish prompt, first time only)"
+echo "  2. gh auth login     (GitHub CLI authentication)"
+echo "  3. claude            (Claude Code first-run auth)"

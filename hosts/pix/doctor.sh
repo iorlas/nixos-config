@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Health check for pix. By default read-only.
+# Health check for pix (OrbStack NixOS VM). By default read-only.
 # Use --fix to auto-fix what can be fixed.
 #
 # Usage:
@@ -49,6 +49,17 @@ fix_or_hint() {
   fi
 }
 
+fix_claude_statusline() {
+  mkdir -p "$HOME/.claude"
+  local file="$HOME/.claude/settings.json"
+  if [ -f "$file" ]; then
+    jq '.statusLine = {"type": "command", "command": "bash ~/.claude/hooks/kay-statusline.sh"}' \
+      "$file" > "$file.tmp" && mv "$file.tmp" "$file"
+  else
+    echo '{"statusLine": {"type": "command", "command": "bash ~/.claude/hooks/kay-statusline.sh"}}' > "$file"
+  fi
+}
+
 # ─── NixOS ─────────────────────────────────────────────────────────────────────
 
 echo "==> NixOS"
@@ -62,27 +73,26 @@ fi
 # ─── Claude Code ───────────────────────────────────────────────────────────────
 
 echo "==> Claude Code"
-export PATH="$HOME/.npm-global/bin:$HOME/.local/bin:$PATH"
+export PATH="$HOME/.local/bin:$HOME/.npm-global/bin:$HOME/.nix-profile/bin:$PATH"
 if command -v claude &> /dev/null; then
   CLAUDE_VER=$(claude --version 2>&1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
   ok "Installed ($CLAUDE_VER)"
-
-  LATEST=$(npm view @anthropic-ai/claude-code version 2>/dev/null || echo "")
-  if [ -n "$LATEST" ] && [ "$CLAUDE_VER" != "$LATEST" ]; then
-    fix_or_hint "Update available: $CLAUDE_VER → $LATEST" \
-      "npm install -g @anthropic-ai/claude-code"
-  fi
 else
-  fix_or_hint "Not installed" \
-    "mkdir -p \$HOME/.npm-global && npm config set prefix \$HOME/.npm-global && npm install -g @anthropic-ai/claude-code"
+  fail "Not installed"
+  hint "Run: curl -fsSL https://claude.ai/install.sh | bash"
 fi
 
 if [ -d "$HOME/.claude" ] && [ -f "$HOME/.claude/.credentials.json" ]; then
   ok "Authenticated"
 else
   warn "Not authenticated"
-  hint "Run inside pix interactively: claude"
-  hint "It will open a browser link for OAuth"
+  hint "Run: claude (first-run opens browser auth)"
+fi
+
+if [ -f "$HOME/.claude/settings.json" ] && grep -q "kay-statusline" "$HOME/.claude/settings.json"; then
+  ok "Statusline configured"
+else
+  fix_or_hint "Statusline not configured in settings.json" "fix_claude_statusline"
 fi
 
 # ─── GitHub CLI ───────────────────────────────────────────────────────────────
@@ -94,8 +104,7 @@ if command -v gh &> /dev/null; then
     ok "Authenticated as $GH_USER"
   else
     warn "Not authenticated"
-    hint "Run inside pix interactively: gh auth login"
-    hint "Choose: GitHub.com → HTTPS → Login with browser"
+    hint "Run: gh auth login"
   fi
 else
   fail "gh not installed"
@@ -111,17 +120,6 @@ else
   warn "No SSH keys available"
   hint "OrbStack should forward your Mac's SSH agent automatically."
   hint "If this fails, check on Mac: ssh-add -l"
-  hint "If Mac has no keys: ssh-keygen -t ed25519"
-fi
-
-# ─── iTerm2 Shell Integration ──────────────────────────────────────────────────
-
-echo "==> iTerm2 Shell Integration"
-if [ -f "$HOME/.iterm2_shell_integration.fish" ]; then
-  ok "Installed"
-else
-  fix_or_hint "Not installed (command completion notifications won't work)" \
-    "curl -fsSL https://iterm2.com/shell_integration/fish -o \$HOME/.iterm2_shell_integration.fish"
 fi
 
 # ─── Tailscale ─────────────────────────────────────────────────────────────────
@@ -149,8 +147,7 @@ else
       ;;
     NeedsLogin)
       warn "Needs authentication"
-      hint "Run inside pix interactively: sudo tailscale up"
-      hint "It will print a URL — open it in your browser to authorize"
+      hint "Run: sudo tailscale up"
       ;;
     Stopped)
       fix_or_hint "Tailscale stopped" \
