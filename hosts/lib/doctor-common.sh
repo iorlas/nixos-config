@@ -4,6 +4,10 @@
 
 LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# Parse --fix flag (must be set before sourcing checks that use fix_or_hint)
+FIX=false
+[[ "${1:-}" == "--fix" ]] && FIX=true
+
 # Load helpers
 source "$LIB_DIR/checks/common.sh"
 
@@ -20,10 +24,6 @@ source "$LIB_DIR/checks/tailscale.sh"
 source "$LIB_DIR/checks/network.sh"
 source "$LIB_DIR/checks/dns.sh"
 source "$LIB_DIR/checks/home-dir.sh"
-
-# Parse --fix flag
-FIX=false
-[[ "${1:-}" == "--fix" ]] && FIX=true
 
 # Run common checks (shared across all hosts)
 run_common_checks() {

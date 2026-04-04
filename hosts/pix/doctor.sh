@@ -3,7 +3,7 @@
 # Use --fix to auto-fix what can be fixed.
 set -uo pipefail
 
-source "$(cd "$(dirname "$0")/.." && pwd)/lib/doctor-common.sh" "$@"
+source "$HOME/.local/lib/doctor-checks/doctor-common.sh" "$@"
 
 # ─── Common checks ────────────────────────────────────────────────────────────
 

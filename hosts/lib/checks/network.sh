@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 # Check: Network connectivity through exit node
 
-# Known public IPs of exit nodes
-declare -A EXIT_NODE_IPS=(
-  ["shen"]="38.242.156.243"
-)
-
 check_network_exit_node() {
   local exit_node="${1:-shen}"
-  local expected_ip="${EXIT_NODE_IPS[$exit_node]:-}"
+
+  # Known public IPs of exit nodes (inside function to avoid source-time declare -A)
+  local expected_ip=""
+  case "$exit_node" in
+    shen) expected_ip="38.242.156.243" ;;
+  esac
 
   echo "==> Network"
   local ts_exit

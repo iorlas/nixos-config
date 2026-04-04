@@ -25,6 +25,10 @@ in
     source = ../hosts/${hostName}/doctor.sh;
     executable = true;
   };
+  home.file.".local/lib/doctor-checks" = {
+    source = ../hosts/lib;
+    recursive = true;
+  };
 
   # Claude Code statusline
   home.file.".claude/hooks/kay-statusline.sh" = {

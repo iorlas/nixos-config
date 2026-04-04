@@ -24,6 +24,19 @@ fix_or_hint() {
     fi
   else
     warn "$1"
+    if [ -t 0 ]; then
+      echo -ne "     Fix now? [y/N] "
+      read -r REPLY
+      if [[ "$REPLY" =~ ^[Yy]$ ]]; then
+        echo -e "     Running: $2"
+        if eval "$2"; then
+          ok "Fixed"
+        else
+          fail "Fix failed"
+        fi
+        return
+      fi
+    fi
     hint "$2"
   fi
 }
