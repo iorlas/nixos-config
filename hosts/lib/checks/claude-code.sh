@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Check: Claude Code — install, auth, statusline, npm→native migration
+# Check: Claude Code — install, auth, settings, npm→native migration
 
 _fix_claude_npm_to_native() {
   echo "  Removing npm-installed Claude Code..."
@@ -8,14 +8,23 @@ _fix_claude_npm_to_native() {
   curl -fsSL https://claude.ai/install.sh | bash
 }
 
-_fix_claude_statusline() {
+# Default settings to ensure in settings.json
+# Each key is checked and merged individually
+_claude_default_settings='{
+  "permissions": {"defaultMode": "bypassPermissions"},
+  "skipDangerousModePermissionPrompt": true,
+  "statusLine": {"type": "command", "command": "bash ~/.claude/hooks/kay-statusline.sh"}
+}'
+
+_fix_claude_settings() {
   mkdir -p "$HOME/.claude"
   local file="$HOME/.claude/settings.json"
   if [ -f "$file" ]; then
-    jq '.statusLine = {"type": "command", "command": "bash ~/.claude/hooks/kay-statusline.sh"}' \
-      "$file" > "$file.tmp" && mv "$file.tmp" "$file"
+    # Merge defaults into existing settings (existing keys take precedence)
+    jq --argjson defaults "$_claude_default_settings" \
+      '$defaults * .' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
   else
-    echo '{"statusLine": {"type": "command", "command": "bash ~/.claude/hooks/kay-statusline.sh"}}' > "$file"
+    echo "$_claude_default_settings" | jq '.' > "$file"
   fi
 }
 
@@ -47,10 +56,19 @@ check_claude_code() {
     hint "Run: claude (first-run opens browser auth)"
   fi
 
-  # Statusline check
-  if [ -f "$HOME/.claude/settings.json" ] && grep -q "kay-statusline" "$HOME/.claude/settings.json"; then
-    ok "Statusline configured"
+  # Settings check (bypass permissions, statusline, etc.)
+  local settings_ok=true
+  if [ -f "$HOME/.claude/settings.json" ]; then
+    grep -q "bypassPermissions" "$HOME/.claude/settings.json" || settings_ok=false
+    grep -q "kay-statusline" "$HOME/.claude/settings.json" || settings_ok=false
+    grep -q "skipDangerousModePermissionPrompt" "$HOME/.claude/settings.json" || settings_ok=false
   else
-    fix_or_hint "Statusline not configured in settings.json" "_fix_claude_statusline"
+    settings_ok=false
+  fi
+
+  if $settings_ok; then
+    ok "Settings configured (permissions, statusline)"
+  else
+    fix_or_hint "Settings missing or incomplete (permissions, statusline)" "_fix_claude_settings"
   fi
 }
