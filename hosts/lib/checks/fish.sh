@@ -3,11 +3,11 @@
 
 check_fish() {
   echo "==> Fish Shell"
-  if [ -x "$HOME/.nix-profile/bin/fish" ]; then
-    ok "Fish available"
+  if command -v fish &> /dev/null; then
+    ok "Fish available ($(which fish))"
   else
-    warn "Fish not found in nix profile"
-    hint "Run: nrs (home-manager switch)"
+    warn "Fish not found on PATH"
+    hint "Run: nrs"
   fi
 }
 
