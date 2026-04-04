@@ -136,10 +136,22 @@ else
       TS_IP=$(tailscale ip -4 2>/dev/null || echo "no IP")
       ok "Connected ($TS_IP)"
 
-      TS_EXIT=$(tailscale status -json 2>/dev/null | jq -r '.ExitNodeStatus.ID // empty' 2>/dev/null)
-      if [ -n "$TS_EXIT" ]; then
-        TS_EXIT_NAME=$(tailscale status 2>/dev/null | grep -E "exit node" | awk '{print $2}' || echo "unknown")
-        ok "Exit node active ($TS_EXIT_NAME)"
+      # Find which peer is the exit node and verify it's shen
+      TS_JSON=$(tailscale status -json 2>/dev/null)
+      TS_EXIT_ID=$(echo "$TS_JSON" | jq -r '.ExitNodeStatus.ID // empty' 2>/dev/null)
+      if [ -n "$TS_EXIT_ID" ]; then
+        TS_EXIT_NAME=$(echo "$TS_JSON" | jq -r --arg id "$TS_EXIT_ID" '.Peer[$id].HostName // "unknown"' 2>/dev/null)
+        TS_EXIT_ONLINE=$(echo "$TS_JSON" | jq -r --arg id "$TS_EXIT_ID" '.Peer[$id].Online // false' 2>/dev/null)
+
+        if [ "$TS_EXIT_NAME" = "$EXIT_NODE" ] && [ "$TS_EXIT_ONLINE" = "true" ]; then
+          ok "Exit node: $TS_EXIT_NAME (online)"
+        elif [ "$TS_EXIT_NAME" = "$EXIT_NODE" ] && [ "$TS_EXIT_ONLINE" != "true" ]; then
+          fail "Exit node is $TS_EXIT_NAME but it's OFFLINE — traffic may not be routing"
+          hint "Check if shen is up, or switch: sudo tailscale up --exit-node=$EXIT_NODE --accept-routes"
+        elif [ "$TS_EXIT_NAME" != "$EXIT_NODE" ]; then
+          warn "Exit node is '$TS_EXIT_NAME' (expected: $EXIT_NODE)"
+          hint "Switch: sudo tailscale up --exit-node=$EXIT_NODE --accept-routes"
+        fi
       else
         fix_or_hint "No exit node (expected: $EXIT_NODE)" \
           "sudo tailscale up --exit-node=$EXIT_NODE --accept-routes"
