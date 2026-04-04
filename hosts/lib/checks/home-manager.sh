@@ -7,7 +7,7 @@ check_home_manager() {
     local hm_gen
     hm_gen=$(home-manager generations 2>/dev/null | head -1 || echo "unknown")
     ok "Active: $hm_gen"
-  elif [ -L "$HOME/.local/share/home-manager/gcroots/current-home" ]; then
+  elif [ -d "$HOME/.local/state/home-manager/gcroots" ]; then
     # NixOS module mode — no CLI binary but home-manager is active
     ok "Active (NixOS module mode)"
   else
