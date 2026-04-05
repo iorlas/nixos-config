@@ -5,5 +5,5 @@
 {
   programs.fish.enable = true;
   users.users.iorlas.shell = pkgs.fish;
-  documentation.man.generateCaches = false;
+  documentation.man.cache.enable = false;
 }
