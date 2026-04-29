@@ -44,6 +44,7 @@
     useDHCP = false;
     useHostResolvConf = false;
     nameservers = [ "9.9.9.9" "149.112.112.112" ];
+    enableIPv6 = false;
   };
 
   # DNS-over-TLS via systemd-resolved
@@ -64,7 +65,7 @@
       matchConfig.Name = "eth0";
       networkConfig = {
         DHCP = "ipv4";
-        IPv6AcceptRA = true;
+        IPv6AcceptRA = false;
       };
       linkConfig.RequiredForOnline = "routable";
     };

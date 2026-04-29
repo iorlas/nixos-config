@@ -2,11 +2,11 @@
 # One-time setup for pix (OrbStack NixOS VM). Idempotent — safe to re-run.
 #
 # Usage:
-#   orb run -m pix bash /mnt/mac/Users/iorlas/nixos-config/hosts/pix/bootstrap.sh
+#   orb run -m pix bash /mnt/mac/Users/iorlas/Workspaces/nixos-config/hosts/pix/bootstrap.sh
 
 set -euo pipefail
 
-REPO="/mnt/mac/Users/iorlas/nixos-config"
+REPO="/mnt/mac/Users/iorlas/Workspaces/nixos-config"
 
 echo "==> Git"
 if command -v git &> /dev/null; then

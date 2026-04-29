@@ -9,7 +9,7 @@ NixOS configuration for OrbStack dev VMs. Flake-based, modular, with home-manage
 orb create nixos:25.11 pix
 
 # Bootstrap (one-time setup)
-orb run -m pix bash /mnt/mac/Users/iorlas/nixos-config/bootstrap.sh
+orb run -m pix bash /mnt/mac/Users/iorlas/Workspaces/nixos-config/bootstrap.sh
 
 # Fix everything (tailscale, etc.)
 orb run -m pix doctor --fix
@@ -27,8 +27,8 @@ orb run -m pix claude
 **Fish aliases:**
 ```bash
 alias pix="orb run -m pix -s" && funcsave pix
-alias pix-connect="bash ~/nixos-config/scripts/pix-connect.sh" && funcsave pix-connect
-cp ~/nixos-config/scripts/pix-connect.fish ~/.config/fish/completions/
+alias pix-connect="bash ~/Workspaces/nixos-config/scripts/pix-connect.sh" && funcsave pix-connect
+cp ~/Workspaces/nixos-config/scripts/pix-connect.fish ~/.config/fish/completions/
 ```
 
 ## Day-to-day usage
@@ -93,8 +93,8 @@ home/
 
 ## Workflow
 
-- **Config lives on Mac** at `~/nixos-config`
-- **VM reads it** via OrbStack mount at `/mnt/mac/Users/iorlas/nixos-config`
+- **Config lives on Mac** at `~/Workspaces/nixos-config`
+- **VM reads it** via OrbStack mount at `/mnt/mac/Users/iorlas/Workspaces/nixos-config`
 - **Edit on Mac**, commit with your existing git credentials
 - **Rebuild from VM**: `nrs` or `bootstrap`
 - **Claude Code** installed via npm (not nix) so it can self-update daily
@@ -109,7 +109,7 @@ home/
 ```bash
 orb delete pix
 orb create nixos:25.11 pix
-orb run -m pix bash /mnt/mac/Users/iorlas/nixos-config/bootstrap.sh
+orb run -m pix bash /mnt/mac/Users/iorlas/Workspaces/nixos-config/bootstrap.sh
 ```
 
 ## Fox (Docker dev container on shen)
